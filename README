@@ -8,6 +8,11 @@ This is basically the work of an hour or two done in the day after an
 all-nighter while being distracted by other work, so don't expect
 perfection.
 
+The current version uses tail recursion to scan patterns, which can be
+optimized by many Common Lisp implementations.  I find it hard to
+imagine anyone's patterns becoming so deeply nested that the recursion
+used to scan them becomes a problem, in any case.
+
 Documentation
 =============
 
