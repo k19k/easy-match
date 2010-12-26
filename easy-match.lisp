@@ -35,6 +35,7 @@
   other data is compared with EQ."
   (let ((esym (gensym)))
     `(let ((,esym ,expr))
+       (declare (ignorable ,esym))
        (cond
 	 ,@(mapcar #'(lambda (clause)
 		       (let ((pattern (car clause))
