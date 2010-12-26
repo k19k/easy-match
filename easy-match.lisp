@@ -8,7 +8,8 @@
 	     (cond
 	       ((not p) (funcall k (nconc cs `((not ,e))) bs))
 	       ((keywordp p) (funcall k (nconc cs `((eq ,p ,e))) bs))
-	       ((symbolp p) (funcall k cs (nconc bs `((,p ,e)))))
+	       ((symbolp p) (if (equal (symbol-name p) "_") (funcall k cs bs)
+				(funcall k cs (nconc bs `((,p ,e))))))
 	       ((listp p) (flet ((this-k (car-conds car-bindings)
 				   (f `(cdr ,e) (cdr p)
 				      car-conds car-bindings k)))

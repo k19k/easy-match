@@ -27,6 +27,10 @@ MATCH works similarly to COND: clauses are tried in sequential order,
 and the first matching pattern decides which clause executes and
 returns a value.  If no patterns are matched, NIL is returned.
 
+A single underscore can be used in patterns to indicate that the value
+in that position is ignored.  Multiple underscores may be used to
+ignore multiple values.
+
 Example: a pattern matching any expression.  This may be useful as a
 default clause.  Any clauses after this one will never execute.
 
@@ -39,6 +43,12 @@ the unspecified value.
 
   (match foo
     ((0 1 2 x :bar) x))
+
+Example: ignored values.  Match any four element list, binding the
+value of the third element to X.
+
+  (match foo
+    ((_ _ x _) x))
 
 Currently only elements of lists may be matched for binding.  All
 other data is compared with EQ.
