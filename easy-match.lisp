@@ -27,18 +27,9 @@
   order, and the first matching pattern decides which clause executes
   and returns a value.  If no patterns are matched, NIL is returned.
 
-  Example: a pattern matching any expression.  This may be useful as a
-  default clause.  Any clauses after this one will never execute.
-
-    (match foo
-      (x (format t \"~A\" x))) ; x is bound to the value of foo
-
-  Example: required values.  In this example, FOO must be a list
-  containing 0, 1, 2, some value, and the keyword :BAR.  X is bound to
-  the unspecified value.
-
-    (match foo
-      ((0 1 2 x :bar) x))
+  The symbol _ (a single underscore) may be used in patterns to
+  indicate that the value in that position is ignored.  This may be
+  used multiple times in a pattern.
 
   Currently only elements of lists may be matched for binding.  All
   other data is compared with EQ."
