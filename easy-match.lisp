@@ -14,7 +14,7 @@
 				   (f `(cdr ,e) (cdr p)
 				      car-conds car-bindings k)))
 			    (f `(car ,e) (car p)
-			       (nconc cs `((listp ,e))) bs #'this-k)))
+			       (nconc cs `((listp ,e) ,e)) bs #'this-k)))
 	       (t (funcall k (nconc cs `((eq ,p ,e))) bs)))))
     (f expr pattern nil nil #'values)))
 
