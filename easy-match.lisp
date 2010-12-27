@@ -1,9 +1,9 @@
 (in-package :easy-match)
 
-(defun match-clause (expr pattern)
-  "Match PATTERN against EXPR.  Return two lists, the first containing
-  conditions that EXPR must satisfy, and the second containing
-  bindings for values in EXPR."
+(defun match-cond-clause (expr pattern guard-expr &rest body)
+  "Return a COND clause to match EXPR against PATTERN.  If GUARD-EXPR
+  is not empty, it is included in the test form of the clause.  BODY
+  and GUARD-EXPR may use symbols bound by PATTERN."
   (labels ((f (e p cs bs k)
 	     (cond
 	       ((not p) (funcall k (nconc cs `((not ,e))) bs))
@@ -16,12 +16,23 @@
 			    (f `(car ,e) (car p)
 			       (nconc cs `(,e (listp ,e))) bs #'this-k)))
 	       (t (funcall k (nconc cs `((eq ,p ,e))) bs)))))
-    (f expr pattern nil nil #'values)))
+    (f expr pattern nil nil
+       #'(lambda (conds bindings)
+	   `((and ,@conds
+		  ,@(cond
+		     ((and guard-expr bindings)
+		      `((let ,bindings
+			  (declare (ignorable ,@(mapcar #'car bindings)))
+			  ,guard-expr)))
+		     (guard-expr `(,guard-expr))))
+	     (let ,bindings
+	       (declare (ignorable ,@(mapcar #'car bindings)))
+	       ,@body))))))
 
 (defmacro match (expr &rest clauses)
   "Do simple pattern matching on EXPR, binding any symbols in the
   patterns in CLAUSES for their respective bodies.  Each clause has
-  the form (pattern &rest body).
+  the form (pattern guard-expr &rest body) or (pattern expr).
 
   MATCH works similarly to COND: clauses are tried in sequential
   order, and the first matching pattern decides which clause executes
@@ -38,10 +49,10 @@
        (declare (ignorable ,esym))
        (cond
 	 ,@(mapcar #'(lambda (clause)
-		       (let ((pattern (car clause))
-			     (body (cdr clause)))
-			 (multiple-value-bind (conds bindings)
-			     (match-clause esym pattern)
-			   `((and ,@conds) (let ,bindings
-					     ,@body)))))
+		       (destructuring-bind (pattern guard-expr &rest body)
+			   clause
+			 (if (not body)
+			     (match-cond-clause esym pattern nil guard-expr)
+			     (apply #'match-cond-clause
+				    esym pattern guard-expr body))))
 		   clauses)))))
