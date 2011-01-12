@@ -11,8 +11,8 @@
 (defmethod match-term ((pattern symbol) expression conds bindings k)
   (cond
     ((or (keywordp pattern)
-	 (eq pattern t)) (funcall k (nconc conds `((eq ,pattern ,expression)))
-				  bindings))
+	 (boundp pattern))
+     (funcall k (nconc conds `((eq ,pattern ,expression))) bindings))
     ((equal (symbol-name pattern) "_") (funcall k conds bindings))
     (t (funcall k conds (nconc bindings `((,pattern ,expression)))))))
 
