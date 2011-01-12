@@ -6,7 +6,7 @@
   and GUARD-EXPR may use symbols bound by PATTERN."
   (labels ((f (e p cs bs k)
 	     (cond
-	       ((not p) (funcall k (nconc cs `((not ,e))) bs))
+	       ((null p) (funcall k (nconc cs `((null ,e))) bs))
 	       ((keywordp p) (funcall k (nconc cs `((eq ,p ,e))) bs))
 	       ((symbolp p) (if (equal (symbol-name p) "_") (funcall k cs bs)
 				(funcall k cs (nconc bs `((,p ,e))))))
