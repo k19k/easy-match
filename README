@@ -57,7 +57,7 @@ Example: right and left folds.
   (defun foldl (f z xs)
     (match xs
       (() z)
-      ((x . xs) (foldr f (funcall f z x) xs))))
+      ((x . xs) (foldl f (funcall f z x) xs))))
 
 Currently only elements of lists may be matched for binding.  All
 other data is compared with EQ.
