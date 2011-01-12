@@ -1,6 +1,14 @@
 (in-package :easy-match)
 
-(defgeneric match-term (pattern expression conds bindings k))
+(defgeneric match-term (pattern expression conds bindings k)
+  (:documentation
+   "Generate conditions and bindings for the term PATTERN and its
+   corresponding EXPRESSION.  The continuation K must accept two list
+   arguments, CONDS and BINDINGS, which may be modified to include new
+   values.
+
+   The MATCH macro passes a continuation that will transform CONDS
+   into an AND form, and BINDINGS into a LET form."))
 
 (defmethod match-term ((pattern t) expression conds bindings k)
   (funcall k (nconc conds `((eq ,pattern ,expression))) bindings))
