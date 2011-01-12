@@ -22,7 +22,7 @@
 			   (match-term (cdr pattern) `(cdr ,expression)
 				       conds* bindings* k))))
 
-(defun match-cond-clause (expr pattern guard-expr &rest body)
+(defun match-cond-clause (pattern expr guard-expr &rest body)
   "Return a COND clause to match EXPR against PATTERN.  If GUARD-EXPR
   is not empty, it is included in the test form of the clause.  BODY
   and GUARD-EXPR may use symbols bound by PATTERN."
@@ -62,7 +62,7 @@
 		       (destructuring-bind (pattern guard-expr &rest body)
 			   clause
 			 (if (not body)
-			     (match-cond-clause esym pattern nil guard-expr)
+			     (match-cond-clause pattern esym nil guard-expr)
 			     (apply #'match-cond-clause
-				    esym pattern guard-expr body))))
+				    pattern esym guard-expr body))))
 		   clauses)))))
