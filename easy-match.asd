@@ -3,7 +3,7 @@
      
 (defsystem "easy-match"
   :description "easy-match: simple pattern matching."
-  :version "0.1"
+  :version "0.2"
   :author "Kevin Bulusek <kbulusek@gmail.com>"
   :licence "BSD"
   :components ((:file "packages")
