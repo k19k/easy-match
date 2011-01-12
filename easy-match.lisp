@@ -1,33 +1,43 @@
 (in-package :easy-match)
 
+(defgeneric match-term (pattern expression conds bindings k))
+
+(defmethod match-term ((pattern t) expression conds bindings k)
+  (funcall k (nconc conds `((eq ,pattern ,expression))) bindings))
+
+(defmethod match-term ((pattern null) expression conds bindings k)
+  (funcall k (nconc conds `((null ,expression))) bindings))
+
+(defmethod match-term ((pattern symbol) expression conds bindings k)
+  (cond
+    ((keywordp pattern) (funcall k (nconc conds `((eq ,pattern ,expression)))
+				 bindings))
+    ((equal (symbol-name pattern) "_") (funcall k conds bindings))
+    (t (funcall k conds (nconc bindings `((,pattern ,expression)))))))
+
+(defmethod match-term ((pattern cons) expression conds bindings k)
+  (match-term (car pattern) `(car ,expression)
+	      (nconc conds `(,expression (listp ,expression)))
+	      bindings #'(lambda (conds* bindings*)
+			   (match-term (cdr pattern) `(cdr ,expression)
+				       conds* bindings* k))))
+
 (defun match-cond-clause (expr pattern guard-expr &rest body)
   "Return a COND clause to match EXPR against PATTERN.  If GUARD-EXPR
   is not empty, it is included in the test form of the clause.  BODY
   and GUARD-EXPR may use symbols bound by PATTERN."
-  (labels ((f (e p cs bs k)
-	     (cond
-	       ((null p) (funcall k (nconc cs `((null ,e))) bs))
-	       ((keywordp p) (funcall k (nconc cs `((eq ,p ,e))) bs))
-	       ((symbolp p) (if (equal (symbol-name p) "_") (funcall k cs bs)
-				(funcall k cs (nconc bs `((,p ,e))))))
-	       ((listp p) (flet ((this-k (car-conds car-bindings)
-				   (f `(cdr ,e) (cdr p)
-				      car-conds car-bindings k)))
-			    (f `(car ,e) (car p)
-			       (nconc cs `(,e (listp ,e))) bs #'this-k)))
-	       (t (funcall k (nconc cs `((eq ,p ,e))) bs)))))
-    (f expr pattern nil nil
-       #'(lambda (conds bindings)
-	   `((and ,@conds
-		  ,@(cond
-		     ((and guard-expr bindings)
-		      `((let ,bindings
-			  (declare (ignorable ,@(mapcar #'car bindings)))
-			  ,guard-expr)))
-		     (guard-expr `(,guard-expr))))
-	     (let ,bindings
-	       (declare (ignorable ,@(mapcar #'car bindings)))
-	       ,@body))))))
+  (match-term pattern expr nil nil
+	      #'(lambda (conds bindings)
+		  `((and ,@conds
+			 ,@(cond
+			    ((and guard-expr bindings)
+			     `((let ,bindings
+				 (declare (ignorable ,@(mapcar #'car bindings)))
+				 ,guard-expr)))
+			    (guard-expr `(,guard-expr))))
+		    (let ,bindings
+		      (declare (ignorable ,@(mapcar #'car bindings)))
+		      ,@body)))))
 
 (defmacro match (expr &rest clauses)
   "Do simple pattern matching on EXPR, binding any symbols in the
