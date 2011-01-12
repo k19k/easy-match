@@ -18,7 +18,7 @@
 
 (defmethod match-term ((pattern cons) expression conds bindings k)
   (match-term (car pattern) `(car ,expression)
-	      (nconc conds `(,expression (listp ,expression)))
+	      (nconc conds `((consp ,expression)))
 	      bindings #'(lambda (conds* bindings*)
 			   (match-term (cdr pattern) `(cdr ,expression)
 				       conds* bindings* k))))
