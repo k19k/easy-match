@@ -1,0 +1,82 @@
+#+TITLE: easy-match
+#+AUTHOR: Kevin Bulušek
+#+OPTIONS: num:nil toc:nil
+#+STARTUP: showeverything
+
+* Description
+
+A simple pattern matcher that allows you to bind parts of matched
+expressions to variables.
+
+The current version uses continuation-passing style to scan patterns,
+which can be tail-call optimized by many Common Lisp implementations.
+I find it hard to imagine anyone's patterns becoming so deeply nested
+or long that the nested calls used to scan them becomes a problem, in
+any case.
+
+* Documentation
+
+#+BEGIN_SRC lisp
+  (match expr &rest clauses)
+#+END_SRC
+
+Do simple pattern matching on =EXPR=, binding any symbols in the
+patterns in =CLAUSES= for their respective bodies.  Each clause has
+the form =(pattern guard-expr &rest body)= or =(pattern expr)=.
+
+=MATCH= works similarly to =COND=: clauses are tried in sequential
+order, and the first matching pattern decides which clause executes
+and returns a value.  If no patterns are matched, =NIL= is returned.
+
+A single underscore can be used in patterns to indicate that the value
+in that position is ignored.  Multiple underscores may be used to
+ignore multiple values.
+
+Currently only elements of lists may be matched for binding.  All
+other data is compared with =EQ=.
+
+** Examples
+
+*** A pattern matching any expression.
+
+This may be useful as a default clause.  Any clauses after this one
+will never execute.
+
+#+BEGIN_SRC lisp
+  (match foo
+    (x (format t "~A" x))) ; x is bound to the value of foo
+#+END_SRC
+
+*** Required values.
+
+In this example, =FOO= must be a list containing 0, 1, 2, some value,
+and the keyword =:BAR=.  =X= is bound to the unspecified value.
+
+#+BEGIN_SRC lisp
+  (match foo
+    ((0 1 2 x :bar) x))
+#+END_SRC
+
+*** Ignored values and a guard expression.
+
+Match any four element list with a third value that is a number,
+binding the value of the third element to =X=.
+
+#+BEGIN_SRC lisp
+  (match foo
+    ((_ _ x _) (numberp x) x))
+#+END_SRC
+
+*** Right and left folds.
+
+#+BEGIN_SRC lisp
+  (defun foldr (f z xs)
+    (match xs
+      (() z)
+      ((x . xs) (funcall f x (foldr f z xs)))))
+
+  (defun foldl (f z xs)
+    (match xs
+      (() z)
+      ((x . xs) (foldl f (funcall f z x) xs))))
+#+END_SRC
